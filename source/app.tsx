@@ -1,14 +1,6 @@
 import {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
-import fs from 'node:fs';
 import Typing from './typing.js';
-
-const debug = (label: string, value: unknown) => {
-	fs.appendFileSync(
-		'debug.log',
-		`${Date.now()} ${label}: ${JSON.stringify(value)}\n`,
-	);
-};
 
 type Screen = 'menu' | 'typing' | 'results';
 type Duration = 1 | 5;
@@ -18,11 +10,8 @@ export default function App() {
 	const [selectedDuration, setSelectedDuration] = useState<Duration>(1);
 
 	useInput((input, key) => {
-		debug('key', {input, up: key.upArrow, down: key.downArrow, screen});
-		debug('render', {screen, selectedDuration});
 
 		if (screen !== 'menu') {
-			debug('caiu no if', screen);
 			return;
 		}
 
@@ -40,7 +29,7 @@ export default function App() {
 	});
 
 	if (screen === 'typing') {
-		return <Typing duration={selectedDuration} />;
+		return <Typing duration={selectedDuration} onBack={() => setScreen('menu')} />;
 	}
 
 	return (
@@ -48,7 +37,7 @@ export default function App() {
 			flexDirection='column'
 			alignItems='center'
 			justifyContent='center'
-			padding={2}
+			paddingX={2}
 		>
 			<Text bold color='green'>
 				{' '}
