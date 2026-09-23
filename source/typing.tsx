@@ -1,22 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {Text, Box, useInput} from 'ink';
 import {generateWords} from './words.js';
 
 type TypingProps = {
     duration: number;
     onBack: () => void;
+    onFinish: () => void;
 };
 
-export default function Typing({duration, onBack}: TypingProps) {
+export default function Typing({duration, onBack, onFinish}: TypingProps) {
     const [words] = useState(() => generateWords(duration === 1 ? 80 : 400));
     const [wordIndex, setWordIndex] = useState(0);
     const [input, setInput] = useState('');
+    const [timeLeft, setTimeLeft] = useState(duration * 60);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev < 1) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useInput((ch, key) => {
         if(key.escape) {
             onBack();
             return;
         }
+        if (timeLeft <= 0 ) {
+            if (key.return) {
+                onFinish();
+            }
+            return;
+        }
+
         if (key.return) return;
         if (key.backspace) return setInput(prev => prev.slice(0, -1));
         if (ch === ' ') {
@@ -31,18 +53,62 @@ export default function Typing({duration, onBack}: TypingProps) {
     const nextWords = words.slice(wordIndex + 1, wordIndex + 10).join(' ');
 
     return (
-        <Box flexDirection="column" padding={1}>
-            <Box marginBottom={1}>
+        <Box flexDirection="column" 
+             padding={1}
+        >
+            <Box 
+                justifyContent="space-between" 
+                alignItems="center" 
+                marginBottom={1}
+            >
                 <Text dimColor>[ESC] Voltar ao Menu</Text>
+
+                <Box 
+                    borderStyle="round" 
+                    borderColor={timeLeft < 10 ? 'red' : 'yellow'} 
+                    paddingX={1}
+                    >
+                <Text 
+                    bold color={timeLeft < 10 ? 'red' : 'yellow'}
+                >
+                    Tempo: {formatTime(timeLeft)}
+                </Text>
+
+                </Box>
             </Box>
 
-            <Box>
+            <Box
+                borderStyle="round"
+                borderColor="cyan"
+                paddingX={2}
+                paddingY={1}
+                flexDirection="row"
+            >
                 {renderCurrentWord(currentWord, input)}
-
                 <Text dimColor>{' ' + nextWords}</Text>
             </Box>
+
+            {timeLeft <= 0 && (
+                <Box
+                    marginTop={1}
+                    flexDirection="column"
+                >
+                    <Text color="red" bold>
+                        Tempo esgotado!
+                    </Text>
+                    <Text dimColor>
+                        Pressione [Enter] para continuar ou [ESC] para o menu
+                    </Text>
+                </Box>
+            )}
         </Box>
     )
+}
+
+function formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2,'0')}`;
 }
 
 function renderCurrentWord(targetWord: string, currentInput: string){

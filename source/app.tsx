@@ -11,6 +11,13 @@ export default function App() {
 
 	useInput((input, key) => {
 
+		if (screen === 'results') {
+			if (key.return || key.escape) {
+				setScreen('menu');
+			}
+			return;
+		}
+
 		if (screen !== 'menu') {
 			return;
 		}
@@ -29,7 +36,28 @@ export default function App() {
 	});
 
 	if (screen === 'typing') {
-		return <Typing duration={selectedDuration} onBack={() => setScreen('menu')} />;
+		return (
+			<Typing 
+				duration={selectedDuration} 
+				onBack={() => setScreen('menu')} 
+				onFinish={() => setScreen('results')}
+			/>
+		);
+	}
+
+	if (screen === 'results') {
+		return (
+			<Box flexDirection='column' padding={2} alignItems='center'>
+				<Text bold color="green">
+					Teste finalizado!
+				</Text>
+				<Box marginTop={1}>
+					<Text dimColor>Pressione [ESC] ou [Enter] para voltar ao menu
+
+					</Text>
+				</Box>
+			</Box>
+		);
 	}
 
 	return (
