@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import {Text, Box, useInput} from 'ink';
 import {generateWords} from './words.js';
+import { calculateStats, TestResult } from "./stats.js";
 
 type TypingProps = {
     duration: number;
     onBack: () => void;
-    onFinish: () => void;
+    onFinish: (result: TestResult) => void;
 };
 
 export default function Typing({duration, onBack, onFinish}: TypingProps) {
@@ -13,6 +14,8 @@ export default function Typing({duration, onBack, onFinish}: TypingProps) {
     const [wordIndex, setWordIndex] = useState(0);
     const [input, setInput] = useState('');
     const [timeLeft, setTimeLeft] = useState(duration * 60);
+    const [correctWords, setCorrectWords] = useState(0);
+    const [wrongWords, setWrongWords] = useState(0);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -34,7 +37,8 @@ export default function Typing({duration, onBack, onFinish}: TypingProps) {
         }
         if (timeLeft <= 0 ) {
             if (key.return) {
-                onFinish();
+                const result = calculateStats(correctWords, wrongWords, duration);
+                onFinish(result);
             }
             return;
         }
@@ -43,6 +47,11 @@ export default function Typing({duration, onBack, onFinish}: TypingProps) {
         if (key.backspace) return setInput(prev => prev.slice(0, -1));
         if (ch === ' ') {
             if (input === '') return;
+            if (input === currentWord) {
+                setCorrectWords(prev => prev + 1);
+            } else {
+                setWrongWords(prev => prev + 1);
+            }
             setWordIndex(prev => prev + 1);
             return setInput('');
         }

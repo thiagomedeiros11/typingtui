@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import Typing from './typing.js';
+import { TestResult } from './stats.js';
 
 type Screen = 'menu' | 'typing' | 'results';
 type Duration = 1 | 5;
@@ -8,6 +9,7 @@ type Duration = 1 | 5;
 export default function App() {
 	const [screen, setScreen] = useState<Screen>('menu');
 	const [selectedDuration, setSelectedDuration] = useState<Duration>(1);
+	const [results, setResults] = useState<TestResult | null>(null);
 
 	useInput((input, key) => {
 
@@ -40,7 +42,10 @@ export default function App() {
 			<Typing 
 				duration={selectedDuration} 
 				onBack={() => setScreen('menu')} 
-				onFinish={() => setScreen('results')}
+				onFinish={(res) => {
+					setResults(res);
+					setScreen('results');
+				}}
 			/>
 		);
 	}
@@ -51,11 +56,13 @@ export default function App() {
 				<Text bold color="green">
 					Teste finalizado!
 				</Text>
-				<Box marginTop={1}>
-					<Text dimColor>Pressione [ESC] ou [Enter] para voltar ao menu
-
-					</Text>
+				<Box flexDirection="column" marginY={1}>
+					<Text>Velocidade: <Text bold color="cyan">{results?.wpm} WPM</Text></Text>
+					<Text>Precisão: <Text bold color="yellow">{results?.accuracy}%</Text></Text>
+					<Text>Acertos: <Text bold color="green">{results?.correctWords} palavras</Text></Text>
+					<Text>Erros: <Text bold color="red">{results?.wrongWords} palavras</Text></Text>
 				</Box>
+				<Text dimColor>Pressione [Enter] para ver o resultado ou [ESC] voltar ao menu</Text>
 			</Box>
 		);
 	}
